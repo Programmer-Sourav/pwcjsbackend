@@ -1,7 +1,4 @@
 // netlify/functions/countries.js
-
-const axios = require('axios');
-
 const axiosRetry = require('axios-retry');
 const axios = require('axios');
 
