@@ -11,6 +11,7 @@ exports.handler = async function(event, context) {
         'Authorization': `Bearer ${apiKey}`,
         'Accept': 'application/json',  // Other headers may be needed depending on the API
       },
+      timeout: 10000,
     });
 
     const countries = response.data;
