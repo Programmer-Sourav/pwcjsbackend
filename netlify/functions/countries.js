@@ -22,7 +22,7 @@ exports.handler = async function(event, context) {
     console.error('Error fetching countries:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching countries', error: error.message }),
+      body: JSON.stringify({ message: 'Error fetching countries', error: error }),
     };
   }
 };
