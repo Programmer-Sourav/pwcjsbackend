@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"  # This tells Netlify where your serverless functions are located
+  publish = "public"               # This is the folder where static files are (if you have any)
+
+[[redirects]]
+  from = "/countries"
+  to = "/.netlify/functions/countries"  # Redirect API routes to the corresponding serverless functions
+  status = 200
