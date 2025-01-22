@@ -14,7 +14,11 @@ const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 app.get("/", (req, res) => {
   res.json("Hello from nodejs");
 });
-app.get("/countries", async (req, res) => {
+app.get("/countries/:start/:end", async (req, res) => {
+
+  const startIndex = req.params.start;
+  const endIndex = req.params.end;
+
   const apiKeyToken = "1942|phnty85UIaRSyFV1arPJEPOw7ni2cL5qHKPPvBN1";
   const code = apiKeyToken;
   const cacheKey = `${code}`;
@@ -27,7 +31,8 @@ app.get("/countries", async (req, res) => {
       const currentTime = Date.now();
       const lastTime = cachedResult.timestamp;
       if (currentTime - lastTime < CACHE_EXPIRATION_TIME) {
-        res.json(cachedResult.data);
+        const filteredData = cachedResult.data.filter((copiedItem)=>copiedItem.id>=startIndex && copiedItem.id<=endIndex)
+        res.json(filteredData);
         return;
       } else {
         cache.delete(cacheKey);
@@ -53,16 +58,36 @@ app.get("/countries", async (req, res) => {
       }
 
       cache.set(cacheKey, { data: copiedData, timestamp: Date.now() });
-
+      const filteredData = copiedData.filter((copiedItem)=>copiedItem.id>=startIndex && copiedItem.id<=endIndex)
+      
       res
         .status(200)
-        .json({ message: "Found Country details", countries: copiedData });
+        .json({ message: "Found Country details", countries: filteredData });
     } catch (error) {
       console.error(error);
       res
         .status(500)
         .json({ message: "Something went wrong, please try again later." });
     }
+  }
+});
+
+app.get("/countries/search", async (req, res) => {
+  const countryName = req.query.name;
+  console.log(11111, countryName);
+  let remoteUrl = `https://restcountries.com/v3.1/name/${countryName}`;
+    console.log(2222, remoteUrl);
+  try {
+    const response = await fetch(remoteUrl);
+    const data = await response.json();
+    console.log(3333, data);
+    console.log(4444, data[0]);
+    res.status(200).json({ message: "Countries by Name", countries: data[0] });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong, please try again later." });
   }
 });
 
@@ -142,22 +167,7 @@ app.get("/countries/region/:region", async (req, res) => {
   }
 });
 
-app.get("/countries/search", async (req, res) => {
-  const countryName = req.query.name;
 
-  let remoteUrl = `https://restcountries.com/v3.1/name/${countryName}`;
-
-  try {
-    const response = await axios.get(remoteUrl);
-    const data = response.data;
-    res.status(200).json({ message: "Countries by Name", countries: data[0] });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong, please try again later." });
-  }
-});
 
 app.get("/countries/search/capital", async (req, res) => {
   const capitalName = req.query.capital;
