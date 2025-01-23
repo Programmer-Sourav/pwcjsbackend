@@ -72,6 +72,59 @@ app.get("/countries/:start/:end", async (req, res) => {
   }
 });
 
+app.get("/countries/search/:region", async (req, res) => {
+  const regionName = req.params.region;
+  console.log(2222, regionName);
+  let remoteUrl = `https://restcountries.com/v3.1/region/${regionName}`;
+  console.log(3333, remoteUrl);
+  try {
+    const response = await axios.get(remoteUrl);
+    const data = response.data;
+    res
+      .status(200)
+      .json({ message: "Countries by Region", countries: data[0] });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong, please try again later." });
+  }
+});
+
+// app.get('/countries/search', checkQueryAndCallAPI, (req, res) => {
+//   // Send the response from the external API to the client
+//   res.json(req.apiResponse);
+// });
+
+async function checkQueryAndCallAPI(req, res, next) {
+  const searchParams = req.query;  // Get query parameters from the request
+  const baseUrl = "http://35.173.230.235:3000/countries/search";
+  
+  // Build URL based on the query parameter (region or name)
+  let url = baseUrl;
+  if (searchParams.region) {
+      url += `?region=${searchParams.region}`;
+  } else if (searchParams.name) {
+      url += `?capital=${searchParams.capital}`;
+  } else {
+      return res.status(400).json({ error: "Either 'region' or 'name' must be provided." });
+  }
+
+  try {
+      // Call the external API with the constructed URL
+      const response = await axios.get(url);
+      
+      // Attach the API response to the request object and move to the next middleware
+      req.apiResponse = response.data;
+      ///const data = response.data;
+      //res.status(200).json({ message: "Countries by Region", countries: data[0] });
+      next();  // Proceed to the next middleware/handler
+  } catch (error) {
+      console.error("Error making API request:", error);
+      return res.status(500).json({ error: "Error contacting the external API" });
+  }
+}
+
 app.get("/countries/search", async (req, res) => {
   const countryName = req.query.name;
   console.log(11111, countryName);
@@ -128,7 +181,7 @@ app.get("/countries/:code", async (req, res) => {
   }
 });
 
-app.get("/countries/region/:region", async (req, res) => {
+app.get("/countries/search/region/:region", async (req, res) => {
   const region = req.params.region;
   const name = req.params.name;
 
@@ -169,8 +222,8 @@ app.get("/countries/region/:region", async (req, res) => {
 
 
 
-app.get("/countries/search/capital", async (req, res) => {
-  const capitalName = req.query.capital;
+app.get("/countries/search/capital/:capital", async (req, res) => {
+  const capitalName = req.params.capital;
 
   let remoteUrl = `https://restcountries.com/v3.1/capital/${capitalName}`;
 
@@ -188,24 +241,6 @@ app.get("/countries/search/capital", async (req, res) => {
   }
 });
 
-app.get("/countries/search/region", async (req, res) => {
-  const regionName = req.query.region;
-
-  let remoteUrl = `https://restcountries.com/v3.1/region/${regionName}`;
-
-  try {
-    const response = await axios.get(remoteUrl);
-    const data = response.data;
-    res
-      .status(200)
-      .json({ message: "Countries by Region", countries: data[0] });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong, please try again later." });
-  }
-});
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
